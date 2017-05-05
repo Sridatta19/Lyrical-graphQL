@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const axios = require('axios');
 const graphql = require('graphql');
 const {
   GraphQLObjectType,
@@ -7,7 +7,6 @@ const {
   GraphQLInt,
   GraphQLString
 } = graphql;
-const Lyric = mongoose.model('lyric');
 
 const LyricType = new GraphQLObjectType({
   name:  'LyricType',
@@ -18,11 +17,9 @@ const LyricType = new GraphQLObjectType({
     song: {
       type: require('./song_type'),
       resolve(parentValue) {
-        return Lyric.findById(parentValue).populate('song')
-          .then(lyric => {
-            console.log(lyric)
-            return lyric.song
-          });
+        return axios.get(`https://lyricalapi.herokuapp.com/lyrics/${parentValue.id}`)
+          .then(response =>  axios.get(`https://lyricalapi.herokuapp.com/songs/${response.data.songId}`))
+          .then(response => response.data);
       }
     }
   })

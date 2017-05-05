@@ -1,10 +1,8 @@
-const mongoose = require('mongoose');
+const axios = require('axios');
 const graphql = require('graphql');
 const { GraphQLObjectType, GraphQLList, GraphQLID, GraphQLNonNull } = graphql;
 const SongType = require('./song_type');
 const LyricType = require('./lyric_type');
-const Lyric = mongoose.model('lyric');
-const Song = mongoose.model('song');
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -12,21 +10,24 @@ const RootQuery = new GraphQLObjectType({
     songs: {
       type: new GraphQLList(SongType),
       resolve() {
-        return Song.find({});
+        return axios.get('https://lyricalapi.herokuapp.com/songs')
+          .then(response =>  response.data);
       }
     },
     song: {
       type: SongType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
       resolve(parentValue, { id }) {
-        return Song.findById(id);
+        return axios.get(`https://lyricalapi.herokuapp.com/songs/${id}`)
+          .then(response =>  response.data);
       }
     },
     lyric: {
       type: LyricType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
       resolve(parnetValue, { id }) {
-        return Lyric.findById(id);
+        return axios.get(`https://lyricalapi.herokuapp.com/lyrics/${id}`)
+        .then(response =>  response.data);
       }
     }
   })

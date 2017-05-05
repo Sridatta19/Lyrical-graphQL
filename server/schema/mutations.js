@@ -1,8 +1,6 @@
 const graphql = require('graphql');
+const axios = require('axios');
 const { GraphQLObjectType, GraphQLString, GraphQLID } = graphql;
-const mongoose = require('mongoose');
-const Song = mongoose.model('song');
-const Lyric = mongoose.model('lyric');
 const SongType = require('./song_type');
 const LyricType = require('./lyric_type');
 
@@ -15,7 +13,8 @@ const mutation = new GraphQLObjectType({
         title: { type: GraphQLString }
       },
       resolve(parentValue, { title }) {
-        return (new Song({ title })).save()
+        return axios.post(`https://lyricalapi.herokuapp.com/songs/addSong?title=${title}`)
+          .then(response =>  response.data);
       }
     },
     addLyricToSong: {
@@ -25,21 +24,24 @@ const mutation = new GraphQLObjectType({
         songId: { type: GraphQLID }
       },
       resolve(parentValue, { content, songId }) {
-        return Song.addLyric(songId, content);
+        return axios.post(`https://lyricalapi.herokuapp.com/lyrics/addLyric?songId=${songId}&content=${content}`)
+          .then(response =>  response.data);
       }
     },
     likeLyric: {
       type: LyricType,
       args: { id: { type: GraphQLID } },
       resolve(parentValue, { id }) {
-        return Lyric.like(id);
+        return axios.post(`https://lyricalapi.herokuapp.com/lyrics/likeLyric/${id}`)
+          .then(response =>  response.data);
       }
     },
     deleteSong: {
       type: SongType,
       args: { id: { type: GraphQLID } },
       resolve(parentValue, { id }) {
-        return Song.remove({ _id: id });
+        return axios.post(`https://lyricalapi.herokuapp.com/songs/deleteSong/${id}`)
+          .then(response =>  response.data);
       }
     }
   }
